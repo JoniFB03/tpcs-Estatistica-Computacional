@@ -1,0 +1,164 @@
+---
+title: "TPC 5-Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "30/09/2022"
+output:
+  html_document:
+    theme: sandstone
+    df_print: paged
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo=FALSE}
+blockquote{
+color:grey;
+}
+```
+
+# Variáveis aleatórias
+
+## Exercício 1
+
+> Sabe-se que nos municípios de uma certa região turística, $40%$ mais que duplicam a sua 
+população nos meses de verão. 
+Suponha que o acréscimo no consumo de água por cada turista alojado, por dia, pode ser descrito 
+através de uma variável aleatória com distribuição Normal, de média $0,50 m^3$ e desvio-padrão 
+$0,05 m^3$.
+
+Com isto sabe-se que $\mu=0.50 m^3$ e $\sigma=0.05 m^3$.
+
+```{r,echo=FALSE}
+miuX1 <- 0.50
+sigmaX1 <- 0.05
+cat("Foram guardadas as variáveis da média (como miuX1) e do desvio padrão (como sigmaX1) que correspondem a",miuX1,"e",sigmaX1,", respetivamente.")
+```
+
+Com as variáveis criadas para as duas medidas, passamos para as alíneas.
+
+### a)
+
+> Qual a probabilidade do acréscimo no consumo, por turista e por dia, ser inferior a $0,437 m^3$?
+
+Seja $X_1$- acréscimo no consumo de água por cada turista alojado em que;
+  
+  $X_1\sim N(0.5,0.05)$
+  
+Para calcular a probabilidade pretendida é necessário calcular a probabilidade de $P[X_1<0.437]=P[X_1\le0.437]$. Realiza-se a  igualdade entre os dois, por se tratar de uma variável contínua, em que a probabilidade do valor ser *0.437* será muito pequena. Logo teremos as expressões seguintes:
+
+
+Com as variáveis criadas fazemos a probabilidade pretendida.
+
+```{r}
+norm1a <- pnorm(0.437,mean=miuX1,sd=sigmaX1,lower.tail = TRUE)
+norm1a
+```
+
+Assim, concluímos que a probabilidade do acréscimo ser inferior a *0.437*, $P[X_1<0.437]$, é igual a **`r norm1a`**.
+
+### b)
+
+> Calcule o maior acréscimo de consumo dos 25% menores acréscimos.
+
+Para calcular o maior acréscimo de consumo dos 25% menores acréscimos é necessário utilizar a função *qnorm* e encontrar o valor correspondente ao 1º quartil, ou seja, onde na amostra o valor máximo dos 25% primeiros:
+
+  $P[X_1\le corte]=0.25$, em que o corte representa a probabilidade pretendida
+  
+O modelo probabilístico será igual ao da *alínea a)*: $X_1\sim N(0.5,0.05)$
+
+```{r}
+norm1b <- qnorm(0.25,mean=miuX1,sd=sigmaX1,lower.tail = TRUE)
+norm1b
+```
+
+Como output foi dado o valor do corte do 1º quartil (*25%*), corte= **`r norm1b`**. 
+
+### c)
+
+> Numa certa unidade de turismo rural casa, a capacidade é de 20 hóspedes. Considerando 
+um momento em que a unidade está totalmente cheia, qual a probabilidade do consumo de 
+água diário aumentar em pelo menos $10,75 m^3$?
+
+Seja $X_2$- acréscimo no consumo de água diário por cada 20 turistas alojados.
+
+Será utilizado o teorema da aditividade da normal, pois os hóspedes são variáveis aleatórias independentes e identicamente distribuídas. Logo, pelo corolário da aditividade da normal chega-se à fórmula/modelo probabilístico seguinte: 
+
+  $$T=\sum_{i=1}^{20}X_i\sim N(\mu_T=20\mu,\sigma_T=\sigma\sqrt{20})$$, onde $\mu$ e $\sigma$ representam os valores da média e desvio padrão do consumo diário, por turista, respetivamente.
+  $X_2\sim N(0.5\times 20,0.05\times \sqrt{20})$
+
+Ou seja, a probabilidade será dada na forma: $P[X_2\ge 10.75]$
+
+```{r}
+miuT <- miuX1*20
+sigmaT <- sigmaX1*sqrt(20)
+norm1c <- pnorm(10.75,mean=miuT,sd=sigmaT,lower.tail=FALSE)
+norm1c
+```
+
+Com isto, o valor retirado para a probabilidade será de **`r norm1c`**.
+
+### d)
+
+> Em relação à casa de turismo rural da alínea anterior: 
+
+  > i) Simule uma observação do acréscimo de consumo de água de 20 hóspedes dessa 
+casa de turismo rural. Pretende-se que simule o acréscimo de consumo gerado 
+por cada um desses 20 hóspedes, e que reporte os acréscimos individuais e o 
+acréscimo total (soma dos acréscimos) para esta simulação.
+
+i)
+De forma a fazer a simulação de uma observação, será utilizado o comando *rnorm* com o n=20, que irão corresponder aos 20 hóspedes, e com os valores de $\mu$ e $\sigma$ calculados face ao problema da alínea *c)*. Por fim, iremos calcular a soma dos valores que estão no vetor que corresponderá ao acréscimo total.
+
+
+```{r}
+rnorm1di <- rnorm(20,mean=miuT,sd=sigmaT)
+rnorm1di
+```
+
+Foi retornado o vetor com os valores dos acréscimos individuais dos hóspedes: *vetor com 20 valores, 1 para cada hóspede*.
+
+```{r}
+soma <- sum(rnorm1di)
+soma
+```
+
+Foi retornada a soma desses acréscimos, ou seja, o acréscimo total: **`r soma`**.
+
+
+> ii) Simule 1000 observações nas mesmas condições, guardando apenas a soma 
+para cada uma delas, e, com base nessa simulação, estime a probabilidade que 
+calculou de forma exata em c)
+
+ii)
+Agora pretendem-se fazer 1000 observações mas somente com os valores das somas geradas na alínea anterior(*alínea d)i)*), com a função *rnorm*. Para realizar isto utiliza-se a função *replicate* para replicar 1000 vezes o vetor com a soma dos acréscimos dos 20 hóspedes.
+
+```{r}
+rnorm1dii <- replicate(1000,sum(rnorm(20,mean=miuX1,sd=sigmaX1)))
+length(which(rnorm1dii>=10.75))/length(rnorm1dii)
+# histograma com densidade
+hist(rnorm1dii,freq=FALSE,xlab="Consumo de água diário/20 hóspedes",ylab="Densidade",main="Histograma com a função de distribuição")
+curve(dnorm(x,10,0.2236),add=TRUE)
+# histograma com quartis
+h <- hist(rnorm1dii,breaks=20,plot=FALSE)
+cols <- c( "light blue", "#FF7F7F", "#FFAA33", "light green")  
+k <- cols[findInterval(h$mids, quantile(rnorm1dii), rightmost.closed=T, all.inside=F)]
+plot(h, col=k,xlab="Consumo de água diário/20 hóspedes",ylab="Frequência",main="Histograma relativo aos quartis")
+```
+
+Assim, chegou-se ao valor da aproximação da *alínea c)* que foi **0**. Como o valor da probabilidade do consumo diário de água dos 20 hóspedes (*alínea c)*) é muito baixo, o valor da aproximação ser 0 será esperado. O que quer dizer que nos 1000 casos não houve nenhum em que os valores do vetor com as somas foram acima do valor de $10.75\times 20(hóspedes)$.
+
+
+### FIM
+
+
+
+
+
+
+
+
+
+

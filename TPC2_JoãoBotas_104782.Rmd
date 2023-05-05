@@ -1,0 +1,125 @@
+---
+title: "TPC 2- Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "2022-09-17"
+output:
+  prettydoc::html_pretty:
+    df_print: paged
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+#Bibliotecas utilizadas
+#install.packages("dplyr")
+library("dplyr")
+```
+
+# Probabilidades
+
+### Dados do enunciado
+
+
+Sejam os acontecimentos:
+
+**P(A1)**-> probabilidade relativa a um cutefish dourado; 
+**P(A2)**-> probabilidade relativa a um cutefish prateado;
+**P(p_A1)**-> probabilidade do cutefish ter peso inferior aos parâmetros, sabendo que é dourado;
+**P(p_A2)**-> probabilidade do cutefish ter peso inferior aos parâmetros, sabendo que é prateado; 
+
+```{r}
+A1= 0.6
+A2= 0.4
+p_A1= 0.8
+p_A2= 0.3
+```
+
+## Exercício 1
+
+Como se sabe a probabilidade de existir um cutefish dourado e prateado e, ao mesmo tempo, de ter um peixe com peso inferior ao regulamentado sabendo que existem os dois tipos de peixe, utilizamos o teorema da probabilidade total a fim de descobrir a *P(Prob_peso)*.
+P(Prob_peso)-> probabilidade de ser um cutefish com peso inferior ao regulamentado
+
+```{r}
+Prob_peso <- p_A1*A1+p_A2*A2
+# para os dados do enunciado a expressão será: 0,8x0,6+0,3x0,4
+Prob_peso
+```
+
+Logo, a probabilidade de o peso estar inferior aos parâmetros será= **0.6**.
+
+## Exercício 2
+
+Pretende-se saber a probabilidade de um peixe ser cutefish dourado, sabendo que tem peso inferior ao regulamentado. Designemos este acontecimento de *P(A1_p)*.
+
+```{r}
+A1_p <- (p_A1*A1)/Prob_peso
+# para os dados do enunciado a expressão será: (0,8x0,6)/0,6
+A1_p
+```
+
+Após utilizar a fórmula da probabilidade condicionada extrai-se a probabilidade pretendida= **0.8**, (passagem da fórmula de Bayes).
+
+## Exercício 3
+
+Seja P(C1∧~P), a probabilidade da interseção de o cutefish ser dourado e de estar nos parâmetros regulamentados.
+
+```{r}
+C1_e_np <- A1-p_A1*A1
+# para os dados do enunciado a expressão será: 0,6-(0,8x0,6)
+C1_e_np
+```
+A probabilidade obtida foi de **0.12**, para o acontecimento C1∧~P.
+
+## Exercício 4
+
+### 4.1.
+
+A fim de saber o espaço de resultados e as suas respetivas probabilidades foram criados dois *expand.grid* com os valores relativos aos pesos e às chaves das probabilidades já calculadas no *exercício 2*; **P(Prob_peso)= 0.6 e P(~Prob_peso)= 1 - 0.6 = 0.4** (como se fosse a experiência de uma moeda não equilibrada, onde há probabilidades diferentes de sair um e outro). Em seguida, serão multiplicados os pesos às chaves respetivas, para obter-se a probabilidade da combinação de cada linha; (distribuições binomiais).
+
+```{r}
+peso <- c("inferior","desejado")
+vezes_5 <- expand.grid(peso,peso,peso,peso,peso)
+probs <- c(0.60,0.40)
+prob_vezes_5 <- expand.grid(probs,probs,probs,probs,probs)
+multi_probs <- prob_vezes_5$Var1*prob_vezes_5$Var2*prob_vezes_5$Var3*prob_vezes_5$Var4*prob_vezes_5$Var5
+peixes <- data.frame(vezes_5,"Probabilidades"=multi_probs)
+peixes
+```
+
+Como output é gerado um dataframe com o espaço de resultados e as probabilidades pretendidas.
+A probabilidade total da coluna de *Probabilidades* tem de ser igual a 1, tal como mostra o chunk de código seguinte. 
+
+```{r}
+soma_peixes <- sum(peixes$Probabilidades)
+soma_peixes
+```
+
+### 4.2.
+
+Seja o acontecimento A, que pelo menos 3 cutefish têm peso inferior ao regulamentado.
+Para saber o número de cutefish com peso inferior, será criada uma nova coluna com a frequência de aparição de "*inferior*" na combinação.
+
+```{r}
+inferior<-function(x){
+  length(which(x=="inferior"))
+}
+peixes$n_inferiores<-apply(peixes,MARGIN=1,inferior)
+acontA <- (peixes[which(peixes$n_inferiores >= 3),])
+acontA
+prob_inferiores <- sum(acontA$Probabilidades)
+prob_inferiores
+```
+
+É devolvido um dataframe já formado na alínea anterior *4.1.*, mas agora só com as linhas que obedecem ao acontecimento A (*16 linhas*). Ainda, é devolvida a probabilidade deste mesmo acontecimento que corresponde o de somar a coluna das probabilidades do dataframe desse acontecimento. Para o acontecimento A (*acontA*), a probabilidade é de **0.68256**.
+
+
+### FIM
+
+
+
+
+

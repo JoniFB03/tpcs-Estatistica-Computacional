@@ -1,0 +1,191 @@
+---
+title: "TPC 3-Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "2022-09-20"
+output:
+  prettydoc::html_pretty:
+    df_print: paged
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Variáveis aleatórias discretas
+
+## Exercício 1
+
+Pretende-se realizar a experiência que consiste no lançamento de um dado duas vezes e registar a soma dos dois lançamentos efetuados.
+
+```{r}
+dado <- 1:6
+tab_pos <- expand.grid("lan1"=dado,"lan2"=dado)
+tab_pos$prob <- rep(1/nrow(tab_pos),times=nrow(tab_pos))
+tab_pos$soma <- rowSums(tab_pos[,1:2])
+acontU <- aggregate(prob~soma,tab_pos,sum)
+acontU
+```
+
+Foi construído o dataframe acima com a soma (valores possíveis para a variável), na 1ª coluna e com as respetivas probabilidades, na 2ª coluna. 
+  
+  **soma->$u$; probabilidades->$f(u)$**
+
+## Exercício 2
+
+Para desenhar a função de probabilidade é utilizado o comando *plot* com as algumas especificações estéticas na função e, em seguida, desenhados os pontos correspondentes aos valores da tabela construída no *exercício 1*.
+
+```{r}
+plot(x=acontU$soma,y=acontU$prob,type='h',xlab=substitute(paste(italic('u'))),ylab=substitute(paste(italic('f(u)'))),main="Função de probabilidade de U",ylim=c(0,0.18),col="grey")
+points(x=acontU$soma,y=acontU$prob,pch=16,col="blue")
+```
+
+Como output é desenhada o gráfico da função de probabilidade: $f(u)$.
+
+## Exercício 3
+
+Utiliza-se o comando *cumsum()* para o valor das probabilidades irem acumulando-se, ao aumentarmos os valores da 1ª coluna da tabela.
+
+```{r}
+Fu <- cumsum(acontU$prob)
+Fu
+```
+
+É retornado um vetor com as distribuições para cada uma das somas, no lançamento dos dois dados.
+
+## Exercício 4
+
+A função de distribuição com ramos é escrita da seguinte forma:
+
+ $$ F(u)=   \left \{
+            \begin{array}{ll}
+                  0 & u < 2 \\
+                  0.0278 & 2 \le u < 3 \\
+                  0.0833 & 3 \le u < 4 \\
+                  0.1667 & 4 \le u < 5 \\
+                  0.2778 & 5 \le u < 6 \\
+                  0.4167 & 6 \le u < 7 \\
+                  0.5833 & 7 \le u < 8 \\
+                  0.7222 & 8 \le u < 9 \\
+                  0.8333 & 9 \le u < 10 \\
+                  0.9167 & 10 \le u < 11 \\
+                  0.9722 & 11 \le u < 12 \\
+                  1 & u \ge 12 \\
+\end{array} 
+\right. $$
+
+
+Com a função por ramos construída torna-se mais fácil de identificar a probabilidade de tirar uma soma de números inferiores ou superiores a um certo valor ou, ainda, de tirar uma certa soma de valores.
+
+  *Por exemplo: probabilidade da soma ser inferior a 9 é de 0.7222.*
+
+## Exercício 5
+
+Para desenhar a função de distribuição será utilizado o comando *plot.stefun* com alguns parâmetros no comando, com a finalidade de desenhar linhas horizontais acumulativas face à probabilidade dos acontecimentos, observados na função por ramos anterior (*exercício 4*).
+
+```{r}
+plot.stepfun(stepfun(acontU$soma,c(0,Fu),right=FALSE),verticals=FALSE,pch = 16,             
+main="Função Distribuição de U", xlab=substitute(paste(italic("u"))),ylab=substitute(paste(italic("F(u)"))),col.points="blue")
+```
+
+Como output, foi mostrado o gráfico relativo à função de distribuição de U: $F(U)$.
+
+## Exercício 6
+
+Pretende-se calcular a probabilidade da variável aleatória;
+  
+  $P[7\le U \le 10]$
+
+### a) com recurso à função probabilidade
+
+É necessário retirar da tabela do acontecimento *U*, os valores de $f(u)∈ [7,10]$, para, em seguida, serem somados e assim obter-se a probabilidade pretendida.
+
+```{r}
+sum(acontU[acontU$soma>=7&acontU$soma<=10,]$prob)
+```
+
+### b) com recurso à função distribuição
+
+Para calcular com recurso à função distribuição é necessário utilizar a variável **$Fu$**, *do exercício 3* e retirar do vetor os valores em que a soma é 7 e em que a soma é 10, ou seja, em que *u=10* e *u=7*. E, ainda, somar a $f(u)=7$, pois também se quer incluir o 7 à soma da probabilidade. Assim tem-se; 
+  
+  $P[7\le U \le 10]=F(10)-F(7)+f(7)$ 
+
+```{r}
+Fu[which(acontU$soma==10)]-Fu[which(acontU$soma==7)] + acontU$prob[acontU$soma==7]
+```
+
+Como output, nas duas alíneas, foi retirado o mesmo valor de probabilidade, $P[7\le U \le 10]$= **0.5**. 
+
+## Exercício 7
+
+Pretende-se calcular a probabilidade de;
+  
+  $P[7 < U \le 10]$
+
+### a) através da função probabilidade
+
+Serão retirados da tabela do acontecimento *U* os valores de $f(u)∈ ]7,10]$ e serão somados.
+
+```{r}
+sum(acontU$prob[acontU$soma>7&acontU$soma<=10])
+```
+
+### b) através da função distribuição
+
+Utiliza-se a função distribuição quando o valor de $f(u)$ está entre *u=10* e *u=7*.
+
+```{r}
+Fu[which(acontU$soma==10)]-Fu[which(acontU$soma==7)]
+```
+
+Ou seja, pelas duas funções concluímos que $P[7 < U \le 10]$= **0.333**.
+
+## Exercício 8
+
+Pretende-se calcular a probabilidade de;
+  
+  $P[7 < U < 10]$
+
+### a) através da função probabilidade
+
+Serão retirados da tabela do acontecimento *U* os valores de $f(u)∈ ]7,10[$ e serão somados.
+
+```{r}
+sum(acontU$prob[acontU$soma>7&acontU$soma<10])
+```
+
+### b) através da função distribuição
+
+Para utilizar-se a função de distribuição é necessário descobrir uma expressão equivalente a $P[7 < U < 10]$. Neste caso, em concreto, pode-se utilizar a relação $P[7 < U \le 9]$, pois $<10 =\le9$, é semelhante dizer-se, nesta variável discreta.
+
+```{r}
+Fu[which(acontU$soma==9)]-Fu[which(acontU$soma==7)]
+```
+
+Ou seja, pelas duas funções concluímos que $P[7 < U < 10]$= **0.25**.
+
+## Exercício 9
+
+Para calcular a variância e o desvio padrão, pelas fórmulas gerais, irá realizar-se o valor esperado do quadrado dos desvios face à média, onde se retira o valor da variância. Após isso, faz-se a raiz quadrada desse valor, de modo a obter o desvio padrão.
+  
+  $\operatorname {var}(U)=\operatorname {E}[(U-\mu )^{2}]$, variância de $U$
+  
+  ${\displaystyle \sigma ={\sqrt {var(U) }}={\sqrt {\sigma^2 }}}$, desvio padrão de $U$
+  
+```{r}
+miuU <- sum(acontU$soma*acontU$prob)
+miuU
+varU <- sum(acontU$soma^2*acontU$prob)-miuU^2
+varU
+dpU <- sqrt(varU)
+dpU
+```
+
+Logo, a média = **7**, ${\sigma^2}_{U}=$ **5.833** (variância) e ${\sigma}_{U}=$ **2.415** (desvio padrão).
+
+
+
+### FIM
+
+

@@ -1,0 +1,253 @@
+---
+title: "TPC 8-Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "15/10/2022"
+output:
+  html_document:
+    theme: sandstone
+    df_print: paged
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo=FALSE}
+blockquote{
+color:grey;
+}
+```
+
+
+# Testes de Hipóteses
+
+> Num inquérito sobre óculos de sol foram colocadas várias questões aos inquiridos. Para além 
+de características sociodemográficas (sexo, idade e nível de educação), perguntou-se o tipo 
+de óculos de sol que possuíam, quando tinham sido adquiridos, onde tinham sido adquiridos, 
+quanto tinham custado e se eram da marca SoleMio(SM/RB).
+
+> Para além destas questões, ainda foram colocadas outras que originaram a construção de 
+um conjunto de indicadores, cada um numa escala contínua de 0 a 10 – fatores que 
+influenciam a compra de óculos de sol.
+
+> Para este TPC, irão apenas analisar duas questões: 1 e 2. O indicador “Importância do Preço na compra de óculos de sol” – variável Price;
+
+> Os “Fatores que influenciam a compra de óculos de sol” são variáveis que assumem valores 
+reais no intervalo 0-10, onde 0 corresponde a “nada importante” e 10 corresponde a 
+“extremamente importante”.
+
+
+Em primeiro lugar, irá utilizar-se a biblioteca *foreign* de modo a ler os dados do ficheiro RDS, através da função *readRDS*.
+
+```{r}
+library(foreign)
+data_rds<-readRDS('Estudo_Oculos_Sol.rds')
+
+```
+
+
+> Responda a estas questões através da aplicação e interpretação de um teste de hipóteses 
+adequado. 
+Defina as populações em análise e os parâmetros de interesse. Siga os passos indicados 
+nos slides (Etapas de um teste de hipóteses). Considere uma significância de referência de 
+5%.
+
+
+## Exercício 1
+
+>  Será que a importância concedida ao preço está, em termos médios, acima do ponto 
+intermédio da escala (i.e. 5)?
+
+Para começar a analisar a pergunta vamos extrair os dados amostrais do nosso database, e guardar em variáveis para uso em outros *chunks* de código. Designemos a variável do problema:
+
+$X$- importância do preço na compra de óculos de Sol
+
+```{r}
+media <- mean(data_rds$Price)
+dp <- sd(data_rds$Price)
+n <- length(data_rds$Price)
+media
+```
+
+Com os valores retirados, passemos agora para escrever a hipótese nula e a hipótese alternativa, que serão:
+  
+  $$H0\rightarrow \mu\le5\\ H1\rightarrow \mu>5 $$
+
+O teste vai ser unilateral à direita, e irá utilizar-se o teste $N(0,1)$, no qual o valor da variância é desconhecido.
+
+
+Será calculado o valor do quantil e, por conseguinte, construído um gráfico para observar as regiões crítica e não crítica, do problema em questão.
+
+```{r}
+significancia = 0.05
+qnt <- qnorm(1-significancia)
+cat("O valor correspondente ao quantil é de",qnt)
+eixo_x<-c(-2,4)
+eixo_y<-c(0,dnorm(0))
+plot(1, 
+     xlim = eixo_x, ylim = eixo_y,
+     type = "n", 
+     main = "Teste: N(0,1)",
+     ylab = "f.d.p", xlab = "")
+
+abline(h = 0, col="grey")
+
+curve(dnorm(x),
+      from = eixo_x[1], to = eixo_x[2],
+      n = 1000,
+      col = "purple",
+      lwd = 2,
+      add=TRUE)
+
+x1 <- seq(qnt,4,0.01)
+y1 <- dnorm(x1)   
+
+coord_x <- c(x1,4,qnt) 
+coord_y <- c(0,y1,0)
+polygon(coord_x,coord_y,col='purple')
+abline(v=0,col = "black",lty = "dashed",lwd = 2)
+abline(v=1.644854,col="black",lty = "dashed",lwd = 1)
+text(2.3,.3,"X=1.644854")
+```
+
+Com os outputs acima, concluímos que a $RC=[`r round(qnt,3)`,+\infty[$ e que a $RNC= ]-\infty,`r round(qnt,3)`[$.
+
+
+Agora, irá usar-se a expressão seguinte, de forma a concluir o valor do teste:
+
+  $$\frac{\overline X-\mu_0}{\frac{S´}{\sqrt n}},\,onde\; o\;valor\; da\;variância(\sigma^2)\;,\, é\; desconhecido$$
+
+```{r}
+H0 <- 5
+exp1 <- (media - H0)/(dp/sqrt(n))
+cat("O valor do teste de hipótese construído foi de:",exp1)
+t.test(data_rds$Price, alternative = "greater", mu = H0, conf.level = 1- significancia)
+```
+
+Após ter sido calculado o valor pretendido, $\approx$ `r round(exp1,2)`, dá para concluir que iremos rejeitar a $H0$, pois o valor pertence ao intervalo: $RC=[`r round(qnt,3)`,+\infty[$, da região crítica. Outra forma de rejeitarmos a $H0$, é através do *p-value* obtido no *t.test*, onde $p-value\approx0\le\alpha=0.05$.
+
+
+Por isso, pode dizer-se que a importância concedida pelas pessoas pertencentes à amostra, ao preço na compra de óculos de Sol, está acima de 5 (intervalo de 0 a 10), em termos médios.
+
+## Exercício 2
+
+> Será que homens e mulheres diferem, em termos médios, na importância concedida ao 
+preço? (Suponha que as variâncias do preço nos dois grupos, embora sejam desconhecidas, 
+podem ser consideradas iguais)
+
+
+Pretende-se verificar se os homens e mulheres diferem na importância que dão ao preço. Para isso, será necessário realizar um teste de hipótese a fim de ter essa análise. Sabe-se que as variâncias são iguais, apesar de desconhecidas, e que a insignificância de referência é de $5%$.
+
+Primeiro vamos retirar os valores amostrais para homens e mulheres e guardar em variáveis para, em seguida, fazermos o cálculo.
+
+
+Sejam os acontecimentos:
+
+
+$X_1$- importância concedida ao preço pelos homens
+
+
+$X_2$- importância concedida ao preço pelas mulheres
+
+```{r}
+p_homens <- (data_rds$Price[data_rds$sex=="Male"])
+p_mulheres <- (data_rds$Price[data_rds$sex=="Female"])
+
+n1 <- length(p_homens)
+m1 <- mean(p_homens)
+dp1 <- sd(p_homens)
+n2 <- length(p_mulheres)
+m2 <- mean(p_mulheres)
+dp2 <- sd(p_mulheres)
+```
+
+Foram criadas as variáveis com os valores, tanto para homens, como para mulheres.
+
+
+Como queremos saber se a importância ao preço entre homens e mulheres difere, admitimos que a hipótese nula e a hipótese alternativa serão: 
+  $$H0\rightarrow \mu_H=\mu_M \Leftrightarrow \mu_H-\mu_M=0\\ H1\rightarrow \mu_H\neq\mu_M \Leftrightarrow \mu_H-\mu_M\neq0 $$, onde $\mu_H$ e $\mu_M$ são os miu´s de homens e mulheres, respetivamente.
+  
+
+Como as hipóteses são igualdades, o teste é bilateral e terá dois limites, um negativo e um positivo. O teste que irá utilizar-se será o $t(n_1+n_2-2)$, pois assume-se que as variâncias tenham valores iguais, que sejam desconhecidas, e porque estamos a comparar miu, como explicado acima: $\mu_H-\mu_M$.
+
+Agora, será desenhado um gráfico para observar a região critíca e não critíca tal como na *pergunta 1*, mas desta vez usando um teste bilateral.  
+
+```{r}
+significancia=0.05
+Lb <- -qnorm(1-significancia/2)
+Ub <- qnorm(1-significancia/2)
+RC <- c(Lb,Ub)
+cat("O intervalo da região critíca é",RC)
+
+eixo_x<-c(-4,4)
+eixo_y<-c(0,dnorm(0))
+plot(1, 
+     xlim = eixo_x, ylim = eixo_y,
+     type = "n", 
+     main = "Teste: t(n1+n2-2)",
+     ylab = "f.d.p", xlab = "")
+
+abline(h = 0, col="black")
+
+curve(dnorm(x),from = eixo_x[1], to = eixo_x[2],n = 1000,col = "purple",lwd = 2,add=TRUE)
+
+x1 <- seq(-4,Lb,0.01)
+y1 <- dnorm(x1)
+x2 <- seq(Ub,4,0.01)
+y2 <- dnorm(x2)
+
+coord_x <- c(-4,x1,Lb) 
+coord_y <- c(0,y1,0)
+coord_x2 <- c(x2,4,Ub) 
+coord_y2 <- c(0,y2,0)
+polygon(coord_x,coord_y,col='purple')
+polygon(coord_x2,coord_y2,col='purple')
+
+abline(v=0,col = "black",lty = "dashed",lwd = 2)
+abline(v=-1.96,col="black",lty = "dashed",lwd = 1)
+abline(v=1.96,col="black",lty = "dashed",lwd = 1)
+text(-2.5,.3,"X=-1.96")
+text(2.5,.3,"X=1.96")
+```
+  
+Com isto, concluímos que a $RC= ]-\infty,`r round(Lb,2)`]\boldsymbol\cup[`r round(Ub,2)`,+\infty[$ e que a $RNC=[`r round(Lb,2)`,`r round(Ub,2)`]$.
+
+Irá realizar-se o teste, a fim de verificar se o seu valor está na região crítica, para tomar uma decisão relativamente à H0. Para isso, utilizar-se-á a seguinte fórmula:
+
+  $$\frac{(\overline{X_1}-\overline{X_2})-({\mu_1}-{\mu_2})_0}{\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}{\sqrt{\frac{(n-1)s_1´^2+(n-2)s_2´^2}{n_1+n_2-2}}}}\;,\,onde\;\sigma_1^2=\sigma_2^2\;,\,em\;que\;ambas\; são\;desconhecidas$$
+
+```{r}
+sdd=sqrt(n1^-1+n2^-1)*sqrt(((n1-1)*dp1^2+(n2-1)*dp2^2)/(n1+n2-2))
+ET <- ((m1-m2))/sdd
+cat("O valor do teste de hipótese é",ET)
+
+t.test(p_homens,p_mulheres, alternative = "two.sided", mu = 0, var.equal = TRUE, conf.level = 1- significancia/2)
+```
+
+Foi calculado o valor do teste-t com a fórmula apresentada acima e com a função *t.test* e concluiu-se que o valor retornado foi de $\approx$ `r round(ET,3)`. Como o valor pertence ao intervalo: $RC= ]-\infty,`r round(Lb,2)`]\boldsymbol\cup[`r round(Ub,2)`,+\infty[$, então rejeitamos a $H0$, para $\alpha=0.05$. Também podemos assumir a rejeição da $H0$ através do *p-value* calculado na função *t.test*, em que $p-value\approx 0.048\le \alpha=0.05$.
+
+
+Assim, retira-se que a importância concedida ao preço na compra de óculos de Sol, difere entre homens e mulheres (é rejeitada a $H0$). 
+
+
+### FIM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

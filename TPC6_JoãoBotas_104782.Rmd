@@ -1,0 +1,122 @@
+---
+title: "TPC 6-Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "04/10/2022"
+output:
+  html_document:
+    theme: sandstone
+    df_print: paged
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo=FALSE}
+blockquote{
+color:grey;
+}
+```
+
+# Distribuições amostrais, estimação de parâmetros e propriedades de estimadores
+
+## Exercício 1
+
+> Suponha a experiência aleatória que consiste em selecionar aleatoriamente uma foto de um banco de fotos genéricas e verificar se inclui ($x=1$) ou não ($x=0$) gatinhos. Ou seja, considere a seguinte variável aleatória $X$ – foto escolhida ao acaso tem gatinhos (1:sim, 0: não), assumida como tendo distribuição de Bernoulli de parâmetro $p$.
+Pretende considerar amostras de dimensão 10 dessa população, ($X_1,X_2,⋯,X_{10}$). 
+
+### a)
+
+> Construa a função de probabilidade conjunta de ($X_1,X_2,⋯,X_{10}$).
+
+Para construir a função de probabilidade conjunta é preciso notar que $\boldsymbol{\forall} X_i \boldsymbol{\in} (X_1,X_2,...,X_n)$ os acontecimentos são *iid*, independentes e identicamente distribuídos, num processo binomial ou de Bernoulli, $X_i \sim Bern(p)$.
+Seja esse processo escrito da seguinte forma, tal como o enunciado se refere:
+
+
+\begin{equation} f(x;p,q)=  \left \{
+                \begin{array}{ll}
+                  p &, x=1 \\
+                  q=1-p &, x=0 \\
+                  
+\end{array} 
+\right.
+\end{equation}
+
+
+Através da expressão acima, é possível escrever que a função de probabilidade conjunta de $i=1:10$, que será da forma de:
+
+  $$f(x_1,x_2,...,x_{10})=f(x_1)+f(x_2)+f(x_{...})+f(x_{10})=\prod_{i=1}^{10}f(x_i)$$
+  
+Foi introduzida a expressão correspondente à função de probabilidade conjunta em formato *latex*, como se pode observar acima.
+
+
+### b)
+
+> Se $p=0.1$, qual a probabilidade de observar a amostra (1,0,1,0,0,0,0,0,0,0)? E se $p=0.2$ ?
+
+Quer-se saber a probabilidade de observar uma determinada amostra se $p$ for $0.1$. Logo;
+
+  $$f(x_1,x_2,...,x_{10}\boldsymbol{\vert}p)\Longleftrightarrow f(1,0,1,0,0,0,0,0,0,0,0 \boldsymbol{\vert}p=0.1) = $$
+  $$= p^{\sum_{i=1}^{10}x_i}\times (1-p)^{{10}-{\sum_{i=1}^{10}}x_i}$$
+  
+Para resolver esta fórmula simplificada acima, irá criar-se uma função personalizada com R com o vetor com os valores binomiais de $x_1:x_{10}$ e com a probabilidade como parâmetro.
+
+```{r}
+binomial <- function(p){
+  vt <- c(1,0,1,0,0,0,0,0,0,0)
+  p^(sum(vt))*(1-p)^(length(vt)-sum(vt))
+}
+```
+
+Foi construída a função e guardada na variável *binomial*.
+Iremos agora recorrer à função construída para a probabilidade de $p=0.1$.
+
+```{r}
+b1 <- binomial(0.1)
+```
+
+O resultado para $p=0.1$ foi de **`r b1`**.
+
+
+Agora para a probabilidade de $p=0.2$.
+
+```{r}
+b2 <- binomial(0.2)
+```
+
+O valor registado como output para $p=0.2$ foi de **`r b2`**.
+
+### c)
+
+> Como pode interpretar (no contexto apresentado) a estatística $T_1=\sum_{i=1}^{10}X_i$ ? Qual o seu valor esperado?
+
+Para a estatística de $T_1=\sum_{i=1}^{10}X_i$ é importante perceber que terá a soma de todos os elementos para a população de limite $n$, com o somatório de sucessos das 10 fotos escolhidas no problema, as que têm as imagens de gatinhos. Como estamos perante um contexto de Bernoulli, sabemos que só existirão dois valores que as variáveis tomarão.
+
+
+Quanto ao valor esperado da estatística apresentada poderemos provar da seguinte forma:
+  
+  $$E[T_1]=E[\sum_{i=1}^{10}X_i]=\sum_{i=1}^{10}\times E[X_i]=\sum_{i=1}^{10}\times p=\boldsymbol {n \times p}$$
+
+
+Como $n=10$ para o caso em específico, concluímos que o valor esperado será de $E[T_1]=\boldsymbol {10 \times p}$.
+
+
+Através da expressão *latex* anterior, é possível notar que o valor esperado da estatística $T_i$ terá o valor do número de casos (**n=10**) numa população, multiplicado por alguma probabilidade (**p**) escolhida: $E[T_1]=10\times p$.
+
+
+### d)
+
+> Como pode interpretar (no contexto apresentado) a estatística $T_2=\frac{\sum_{i=1}^{10}X_i}{10}$ ? Qual o seu valor esperado?
+
+A estatística $T_2=\frac{\sum_{i=1}^{10}X_i}{10}$ representa a média amostral, que é um vetor com vários elementos, em que cada elemento é a média da amostra de uma variável aleatória.
+
+Assim, o valor esperado será obtido através da seguinte dedução (nota-se que n=10, para esta análise):
+
+  $$E[T_2]=E[\frac {\sum_{i=1}^{10}X_i}{10}]=\sum_{i=1}^{10}\times \frac{E[X_i]}{10}=\sum_{i=1}^{10}\times \frac{p}{10}=10 \times\frac {p}{10}=\boldsymbol p$$
+
+Através da dedução, o valor esperado será relativo a uma probabilidade dada como parâmetro (**p**): $E[T_2]= p$ .
+
+
+### FIM
+

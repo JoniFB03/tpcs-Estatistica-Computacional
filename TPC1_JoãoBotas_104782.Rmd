@@ -1,0 +1,111 @@
+---
+title: "TPC 1- Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "2022-09-15"
+output:
+  prettydoc::html_pretty:
+    df_print: paged
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+#Bibliotecas utilizadas
+#install.packages("dplyr")
+library("dplyr")
+```
+# Probabilidades
+
+## Exercício 1
+
+Comecemos por criar dois dados equilibrados com as 6 faces e com as 8 faces. Em seguida, utiliza-se o comando *expand.grid* de forma a criar todas as alternativas possíveis no lançamento dos dois dados. 
+
+```{r}
+dado_6l <- 1:6
+dado_8l <- 1:8
+dois_dados <- expand.grid(dado_6l,dado_8l)
+```
+É guardada uma tabela com as combinações no lançamento dos dois dados.
+
+Em seguida, vai ser feita a contagem do número de linhas para se adicionar à tabela a probabilidade de cada combinação dos números retirados nos dois dados acontecer.
+
+```{r}
+linhas <- nrow(dois_dados)
+linhas
+Probabilidades <- rep((1/linhas),times=linhas)
+tabela_2dados <- data.frame(dois_dados,Probabilidades)
+tabela_2dados
+```
+
+Como output é mostrado o valor correspondente ao número de linhas/possibilidades = **48**, mas também, a tabela com as combinações dos valores que os dados podem obter, com as respetivas probabilidades.
+Tomará sempre a mesma probabilidade para todos os casos, pois os acontecimentos são equiprováveis, e irá equivaler a **1/48**.
+
+## Exercício 2
+
+O acontecimento A corresponde à soma dos dois números retirados no lançamento exceder 8. Para isso, é criada a condição e são colocadas as combinações possíveis, com a condição, numa tabela. Ainda, faz-se a soma desses casos da tabela de forma a saber a probabilidade do acontecimento A.
+
+```{r}
+premissaA <- which(tabela_2dados$Var1+tabela_2dados$Var2 > 8)
+acontA <- tabela_2dados[premissaA,]
+acontA
+probA <- sum(acontA$Probabilidades)
+probA
+```
+
+Assim, são obtidas a tabela e a probabilidade face à condição A, **P(A)= 0.4375**.
+
+## Exercício 3
+
+O acontecimento B corresponde a que o valor retirado no primeiro lançamento (*dado 6 faces*) seja igual ao retirado no segundo lançamento (*dado 8 faces*). O procedimento foi semelhante ao realizado no acontecimento A, do *exercício 2*, com a condição do acontecimento B.
+
+```{r}
+premissaB <- which(tabela_2dados$Var1 == tabela_2dados$Var2)
+
+acontB <- tabela_2dados[premissaB,]
+acontB
+probB <- sum(acontB$Probabilidades)
+probB
+```
+
+Assim, são obtidas a tabela e a probabilidade face à condição B, **P(B)= 0.125**.
+
+## Exercício 4
+
+Pretende-se calcular a probabilidade do acontecimento: "A soma dos dois dados é maior do que 8 e os pontos dos dados são iguais". Para isso, basta fazer a interseção entre os acontecimentos A e B já calculados nos *exercícios 3 e 4*.
+
+```{r}
+AeB <- intersect(acontA,acontB)
+AeB
+#probabilidade de A conjução com B
+prob_AeB <- sum(AeB$Probabilidades)
+prob_AeB
+```
+
+Assim é obtido o conjunto da interseção de A e B. A probabilidade obtida é **P(A∧B)= 0.041667**.
+
+## Exercício 5
+
+Agora para o acontecimento: “A soma dos dois dados é maior do que 8 ou os pontos dos dois dados são iguais", irá utilizar-se o mesmo método do último exercício, porém, fazendo a união entre os dois acontecimentos.
+
+```{r}
+AouB <- union(acontA,acontB)
+AouB
+#probabilidade de A disjunção com B
+prob_AouB <- sum(AouB$Probabilidades)
+prob_AouB
+```
+
+Tal como no *exercício 4* é obtido um conjunto, mas desta vez da união entre A e B, sendo a probabilidade obtida de **P(AνB)= 0.520833**.
+
+
+### FIM
+
+
+
+
+
+

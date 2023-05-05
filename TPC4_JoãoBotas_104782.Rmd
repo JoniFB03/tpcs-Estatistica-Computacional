@@ -1,0 +1,194 @@
+---
+title: "TPC 4-Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "24/09/2022"
+output:
+  html_document:
+    theme: sandstone
+    df_print: paged
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo=FALSE}
+blockquote{
+color:grey;
+}
+```
+
+# Variavéis aleatórias 
+
+## Exercício 1
+
+> Considere que a procura diária, num certo supermercado, do novo artigo de limpeza, X, 
+lançado no mês passado pela empresa TudoBrilha, pode ser modelizada através de uma
+variável aleatória com distribuição de Poisson de média 3,1.
+
+### a)  
+
+> Qual a probabilidade de, num dia, a procura de X ser no máximo 3?
+
+Designemos a variável aleatória de interesse de $X_1$ - procura diária do novo artigo de limpeza, com proporcionalidade de efeito de 3.1. Como pretende-se saber a probabilidade da procura diária ser no máximo 3, conseguimos escrever isso da seguinte forma $P[X_1 \le 3]$. Esta expressão irá equivaler a algo do género, pela fórmula de Poisson:
+
+  $\!f(x)= \frac{e^{-\lambda}{\lambda^x}}{x!}$, em que $\lambda=3.1$ e $x\in [0,3]$, ou seja, onde x adquire os valores de 0 a 3, inclusive. A fórmula de cálculo exato será de:
+  
+  $$\!f(x)= \frac{e^{-3.1}{3.1^x}}{x!}\Longleftrightarrow{\displaystyle \sum _{i\mathop {=0} }^{3}g(x_{i})}$$
+  
+Para se chegar perto do valor da probabilidade, será realizado uma simulação com a função *rpois* do R.
+  
+```{r}
+rand_a <- rpois(10000,3.1)
+simA <- length(which(rand_a<=3))/length(rand_a)
+simA
+```
+
+Feita a simulação concluímos que o valor da probabilidade pedida ronda o valor seguinte:`r simA`.
+Agora, calculemos pela fórmula de Poisson, utilizando o comando *ppois*.
+
+```{r}
+max_3 <- ppois(3,3.1,lower.tail=TRUE)
+max_3
+```
+
+Como será expectável, o valor da probabilidade da função *ppois* vai obter um valor próximo ao da simulação; **`r round(max_3,4)`** $\approx$ `r round(simA,4)`. 
+$P[X_1 \le 3]={`r round(max_3,4)`}$
+
+### b)
+
+> Qual a probabilidade de, numa semana (7 dias) a procura ser no mínimo 22?
+
+Designemos a variável de interesse $X_2$ - procura semanal do novo artigo de limpeza. A proporcionalidade de efeito ($\lambda$) é dada em termos de procura *diária*, ou seja, para passar a procura para *semanal* é necessário fazer o seguinte:
+  
+  $${\displaystyle {\frac {3.1}{\lambda_{novo}}}={\frac {1}{7}}}\Longleftrightarrow \lambda_{novo}=3.1\times7(dias)=21.7$$
+Com a proporcionalidade de efeito ($\lambda =21.7$), já é possível calcular $P[X_2 \ge 22]$, que corresponde à procura semanal ser no mínimo 22. O valor em termos matemáticos poderá ser calculado através das fórmulas seguintes:
+  
+  $\!g(x)= \frac{e^{-\lambda}{\lambda^x}}{x!}$, em que $\lambda=21.7$ e $x\in [22,+\infty[$, ou seja, onde x adquire os valores de 22 a $+\infty$. A fórmula de cálculo exato será:
+  
+  $$\!g(x)= \frac{e^{-21.7}{21.7^x}}{x!}\Longleftrightarrow{\displaystyle \sum _{i\mathop {=22} }^{N}g(x_{i})}$$, em que $N$ é um número muito grande
+  
+Tal como na *alínea a)* irá recorrer-se a uma simulação de maneira a mostrar um valor próximo ao real.
+
+```{r}
+rand_b <- rpois(10000,21.7)
+simB <- length(which(rand_b>=22))/length(rand_b)
+simB
+```
+
+A simulação chegou ao valor seguinte:`r simB`. Com isto, é possível concluir que o valor real tomará um valor parecido a este.
+Calculemos recorrendo à função *ppois*.
+
+```{r}
+min_22 <- ppois(21,21.7,lower.tail = FALSE)
+min_22
+```
+
+**NOTA**: para calcular $P[X_2 \ge 22]$ foi necessário utilizar *lower.tail=FALSE* para inverter o sinal, mas utilizou-se a seguinte condição: $P[X_2>21]=P[X_2 \ge 22]$
+
+Como output da função *ppois* foi retornado um valor similar ao da simulação;**`r round(min_22,4)`** $\approx$ `r round(simB,4)`. Onde $P[X_2 \le 3]={`r round(min_22,4)`}$
+
+
+### c)
+
+> Qual a probabilidade de, em 7 dias, ocorrerem no máximo 4 dias onde a procura diária é 
+no máximo 3?
+
+Consideremos a variável de interesse para esta condição de $X_3$ - nº de dias onde a procura diária é no máximo 3, em 7 dias(semanalmente). O modelo probabilístico poderá ser escrito na forma de $P[X_3 \le 4]$ : procura diária ser no máximo 3, onde o sucesso é ocorrer ou não ocorrer a procura diária. Em termos matemáticos, esta condição poderá ser calculada utilizando a seguinte fórmula:
+  
+  ${\displaystyle h(x;n,p)={C^n_x}\times p^{x}\times (1-p)^{n-x}\,}$, onde $n=7, p=P[X_1 \le 3]={`r round(max_3,4)`}, x\in[0,4]$, em que n e p são valores constantes, e já calculados anteriormente, e onde x varia entre 0 e 4, inclusive. Portanto, teremos a fórmula simplicada seguinte:
+  
+  $${\displaystyle h(x)={C^7_x}\times 0.6248^{x}\times (1-0.6248)^{7-x}\,}\Longleftrightarrow{\displaystyle \sum _{i\mathop {=0} }^{4}h(x_{i})}$$
+
+Mais uma vez, irá recorrer-se a uma simulação para calcular um valor próximo ao exato.
+
+```{r}
+rand_c <- rbinom(10000,size=7,max_3)
+simC <- length(which(rand_c<=4))/length(rand_c)
+simC
+```
+
+Com este output, será possível concluir que o valor exato estará próximo a este: `r simC`.
+
+```{r}
+max_4 <- pbinom(4,size=7,prob=max_3,lower.tail = TRUE)
+max_4
+```
+
+Assim, podemos concluir que $P[X_3 \le 4]={`r round(max_4,4)`}$; valor próximo ao simulado **`r round(max_4,4)`** $\approx$ `r round(simC,4)`.
+
+## Exercício 2
+
+> Certa fábrica possui um depósito de combustível que é completamente atestado no 
+primeiro dia de cada mês. O volume de combustível (em milhões de litros) consumido 
+mensalmente nessa fábrica é uma variável aleatória com a seguinte função densidade: 
+> $f(x)={3(1-x)^2=3(1-2x+x^2)}$, $0<x<1$.
+
+### a)
+
+> Represente graficamente a função densidade indicada.
+
+Função de densidade de volume de combustível consumido mensalmente, em milhões de litros:
+  
+  $f(x)={3(1-x)^2}$, $0<x<1$
+
+Para desenhar a função acima recorre-se ao comando *plot*, onde são dados vários parâmetros, e, em seguida, utiliza-se o *points* de forma a representar na função os intervalos em que está contida, $0<x<1$.
+
+```{r}
+fx <- function(x){ifelse((0<x & x<1), 3*(1-2*x+x*x), 0)}
+plot(fx,0,1,xlim=c(0,1),n=1001,main="Volume de combustível consumido mensalmente, mi/L",xlab=substitute(paste(italic("x"))),ylab=substitute(paste(italic("f(x)"))))
+points(x = c(0,1),
+       y = c(3,fx(1)),
+       pch = 1,
+       col = "black",cex=2) # 0<x<1
+```
+
+Como output foi desenhada a função de densidade pretendida.
+
+### b)
+
+> Qual a probabilidade de, em certo mês, o consumo se situar entre 0,2 e 0,8 milhões de 
+litros?
+
+Pretende-se calcular a probabilidade em que o consumo se situa entre 0.2 e 0.8 mi/L; chamemos-lhe de acontecimento I. Para tal, recorre-se ao seguinte integral:
+  
+  ${{I=\displaystyle\int\nolimits_{0.2}^{0.8}} {3(1-x)^2}} dx$
+
+Irá ser desenhado o gráfico com a área pretendida, utilizando os comandos *points* e *polygon*. Depois será calculado o integral com a função *integrate* do R.
+
+```{r}
+plot(fx,0,1,xlim=c(0,1),n=1001,main="Volume de combustível consumido mensalmente, mi/L",xlab=substitute(paste(italic("x"))),ylab=substitute(paste(italic("f(x)"))))
+points(x = c(0,1),
+       y = c(3,fx(1)),
+       pch = 1,
+       col = "black",cex=2) # 0<x<1
+points(x = c(.2,.8,.8,.2),
+       y = c(0,0,fx(.8),fx(.2)),
+       pch = 16,
+       col = "blue")
+polygon(c(.2,.8,.8,.2),c(0,0,fx(.8),fx(.2)),col="light blue")
+
+# para obter a probabilidade basta calcular o integral 
+ProbI <- integrate(fx, .2, .8, abs.tol = TRUE)
+cat("A probabilidade do consumo se situar entre 0.2 e 0.8 mi/L, em certo mês, será de",ProbI$value,".")
+```
+
+Assim, concluiu-se que a probabilidade do acontecimento $I$= **0.504**.
+
+### c)
+
+>  Calcule o consumo médio mensal.
+
+Para calcular o valor médio mensal irá calcular-se o integral no intervalo: $0<x<1$, a partir de $xf(x)$.
+
+```{r}
+xfx <- function(x){ifelse((0<x & x<1), 3*x*(1-2*x+x*x), 0)}
+E_X=integrate(xfx, 0, 1)
+cat("O consumo médio mensal é de",E_X$value,"mi/L.")
+```
+
+Como output foi retornado o valor médio mensal; ${\displaystyle\int\limits_{0}^{1}}{xf(x)} dx$= **0.25**.
+
+
+### FIM

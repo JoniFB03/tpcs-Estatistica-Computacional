@@ -1,0 +1,268 @@
+---
+title: "TPC 7-Estatística computacional"
+author: "João Francisco Botas, nº104782"
+date: "13/10/2022"
+output:
+  html_document:
+    theme: sandstone
+    df_print: paged
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(flextable)
+```
+
+```{css, echo=FALSE}
+blockquote{
+color:grey;
+}
+```
+
+
+# Intervalos de confiança
+
+> Num inquérito sobre óculos de sol foram colocadas várias questões aos inquiridos. Para além 
+de características sociodemográficas (sexo, idade e nível de educação), perguntou-se o tipo 
+de óculos de sol que possuíam, quando tinham sido adquiridos, onde tinham sido adquiridos, 
+quanto tinham custado e se eram da marca SoleMio(SM/RB).
+
+> Irão-se analisar apenas duas questões: 1. O indicador “Importância da 
+Publicidade e Marketing na compra de óculos de sol” – variável Pub.Mk; e, 2. a questão 
+“are_RB”, que indica se os óculos são ou não da marca SoleMio
+
+
+> Os “Fatores que influenciam a compra de óculos de sol” são variáveis que assumem valores 
+reais no intervalo 0-10, onde 0 corresponde a “nada importante” e 10 corresponde a 
+“extremamente importante”.
+
+## Exercício 1
+
+>  Pretende-se estimar a importância média concedida à Publicidade e Marketing (variável 
+Pub.Mk) enquanto fator de influência na compra de óculos de sol, através de um intervalo de
+confiança apropriado, a 99% de confiança.
+
+Em primeiro lugar, irá utilizar-se a biblioteca *foreign* de modo a ler os dados do ficheiro RDS, através da biblioteca "foreign".
+
+```{r}
+library(foreign)
+data_rds<-readRDS('Estudo_Oculos_Sol.rds')
+```
+
+Os dados foram guardados num dataframe na variável *data_rds*.
+
+### 1.1.)
+
+> Definir a variável em estudo
+
+Para definir a variável em estudo é necessário entender que na variável a utilizar os valores estarão contidos entre 0 e 10, e tomarão valores reais. Seja $X_1$ a variável em estudo:
+
+$X_1$- Influência na compra de uns óculos de Sol
+
+
+### 1.2.)
+
+>  Identificar o parâmetro a estimar
+
+O parâmetro a estimar será o valor de $\mu$ através de intervalos de confiança, com o valor do desvio padrão ($\sigma$) desconhecido.
+
+### 1.3.)
+
+> Escolher a variável fulcral conveniente para a estimação
+
+Como o valor do desvio padrão é desconhecido, os erros serão acrescidos e, por conseguinte, o intervalo de confiança será maior. Pretende-se estimar $\mu$ através de intervalos de confiança com o valor do desvio padrão desconhecido. Seja a variável fulcral representada por ${VF}_1$ e escrita da seguinte forma: 
+  
+  $$ {VF}_1=\frac {\overline X_1 - \mu}{\frac{S'}{\sqrt{n}}}  \sim N{(0,1)} $$
+
+### 1.4.)
+
+>  Identificar o intervalo teórico (estimador)
+
+A fim de determinar o estimador ou intervalo teórico irá-se utilizar a seguinte dedução:
+
+  $$P[-z<\frac {\overline X_1 - \mu}{\frac{S'}{\sqrt{n}}}<z]=0.99 \Longleftrightarrow 
+  ]I_{0.99}[_{\mu}=]{\overline X_1}-z\frac{S'}{\sqrt{n}}, {\overline X_1}+z\frac{S'}{\sqrt{n}}[$$
+
+Com isto, chegámos ao intervalo teórico para o exercício em causa, onde o desvio padrão é desconhecido e será calculado através de valores amostrais.
+
+### 1.5.)
+
+> Calcular os valores amostrais necessários
+
+Para o exercício em causa, será necessário calcular os valores relativos à média e ao desvio padrão para a amostra, ou seja, a média amostral e o desvio padrão amostral.
+
+```{r}
+media <- mean(data_rds$Pub.Mk)
+media
+desviop <- sd(data_rds$Pub.Mk)
+desviop
+```
+
+Foram retirados os valores amostrais para, posteriormente, serem utilizados no cálculo do intervao de confiança concreto, e guardados nas variáveis *media* e *desviop*.
+
+### 1.6.)
+
+> Construir o intervalo concreto (estimativa)
+
+De forma a construir um intervalo em concreto, utilizar-se-á a fórmula do intervalo teórico construída acima (estimador) e serão substituídos os valores na expressão pelos valores amostrais.
+
+```{r}
+conf <- .99
+cauda <- 1-conf
+# qnorm-> N(0,1)
+tstu <- qnorm(conf+cauda/2)
+erro<-tstu*desviop/sqrt(length(data_rds$Pub.Mk))
+LB<-media-erro
+UB<-media+erro
+cat("O erro será de",erro,".")
+c(LB,UB)
+```
+
+O intervalo de confiança concreto será de ${]I_{0.99}[_{\mu}}^{*}\approx]`r round(LB,3)`,`r round(UB,3)`[$.
+
+### 1.7.)
+
+>  Interpretar o intervalo obtido
+
+O valor obtido representa que, caso reproduzirmos a mesma pesquisa inúmeras vezes, 99% dos intervalos terão entre os valores estimados. Ou seja, o fator de influência está entre $4.86$ e $5.20$ no intervalo de valores reais de 0 a 10, com $99%$ de confiança.
+
+
+## Exercício 2
+
+> Repetir os passos 1 a 7 acima descritos para estimar a proporção de pessoas que possuem 
+óculos da marca Solemio (variável are_RB).
+
+### 2.1.)
+
+> Definir a variável em estudo
+
+Como queremos estimar a proporção de pessoas que têm óculos de Sol, e só existem dois valores possíveis, temos uma população de Bernoulli de ter ou não óculos da marca. Seja $X_2$ a variável em estudo:
+
+\begin{equation}\left \{
+                \begin{array}{ll}
+                  \overline X_2 &, "Yes"= \text{Se a pessoa possuir óculos de Sol da marca} \\
+                   1-\overline X_2 &, "No"= \text{Se não possuir óculos de Sol da marca} \\
+                  
+\end{array} 
+\right.
+\end{equation}
+
+$X_2$- Possuir óculos da marca Solemio (Bernoulli)
+
+
+### 2.2.)
+
+>  Identificar o parâmetro a estimar
+
+Como a população é de Bernoulli iremos querer estimar um valor para $p$, ou seja, a proporção de verdadeiros de uma variável (are.RB, neste caso) na amostra.
+
+### 2.3.)
+
+> Escolher a variável fulcral conveniente para a estimação
+
+Como o valor do desvio padrão é desconhecido, os erros serão acrescidos e, por conseguinte, o intervalo de confiança será maior. Pretende-se estimar p através de intervalos de confiança com o valor do desvio padrão desconhecido e com uma amostra de dimensão superior a 30. Seja a variável fulcral representada por ${VF}_2$ e escrita da seguinte forma: 
+  
+  $$ {VF}_2=\frac {\overline X_2 - p}{\sqrt{\frac{p(1-p)}{n}}}  \sim N{(0,1)} $$
+
+### 2.4.)
+
+>  Identificar o intervalo teórico (estimador)
+
+A fim de determinar o estimador ou intervalo teórico irá-se utilizar a seguinte dedução:
+
+  $$P[-z<\frac {\overline X_2 - p}{\sqrt{\frac{p(1-p)}{n}}}<z]=0.99\Longleftrightarrow 
+  ]I_{0.99}[_{p}=]{\overline X_2}-z\sqrt\frac{\overline X_2(1-{\overline X_2})}{n}, {\overline X_2}+z\sqrt\frac{\overline X_2(1-{\overline X_2})}{n}[$$
+
+Com isto, obtemos o intervalo de confiança teórico para a experiência de Bernoulli.
+
+### 2.5.)
+
+> Calcular os valores amostrais necessários
+
+Iremos calcular a frequência de valores verdadeiros na amostra, assim como as suas percentagens para poder utilizar no cálculo do intervalo de confiança.
+
+```{r}
+data_rds$are_RB <- as.factor(data_rds$are_RB)
+freq_are<-table(data_rds$are_RB)
+percent_are<-prop.table(freq_are)
+```
+
+Foram criadas as variáveis *freq_are* e *percent_are* com os valores insiridos em data frames. Será construída uma flextable com a (biblioteca *flextable*) para os valores ficarem mais perceptíveis no ficheiro.
+
+```{r,echo=FALSE}
+dft <- data.frame(freq_are,percent_are)
+names(dft)[names(dft)=="Var1"]=" Valores"
+names(dft)[names(dft)=="Var1.1"]=" Valores "
+names(dft)[names(dft)=="Freq.1"]="Freq. relativas"
+names(dft)[names(dft)=="Freq"]="Freq. absolutas"
+ft <- flextable(head(dft))
+ft <- theme_box(ft)
+ft <- add_header_row(ft,top = TRUE,values=c("Frequência","Percentagem"),colwidths = c(2,2))
+ft <- bg(ft, bg = "#36454F", part = "header")
+ft <- color(ft, color = "white", part = "header")
+ft <- autofit(ft)
+ft <- bold(ft,i=1,j=2,bold=TRUE, part="body")
+ft <- bold(ft,i=2,j=2,bold=TRUE, part="body")
+ft <- bold(ft,i=1,j=4,bold=TRUE, part="body")
+ft <- bold(ft,i=2,j=4,bold=TRUE, part="body")
+ft <- add_footer_lines(ft,"Proporção de verdadeiros da variável are.RB na amostra.")
+ft
+```
+
+Assim, foi retornada a tabela referida com os valores amostrais pretendidos.
+
+### 2.6.)
+
+> Construir o intervalo concreto (estimativa)
+
+Para calcular a estimativa, serão utilizados valores da tabela construída acima relativos à amostra em causa.  
+
+```{r}
+conf2 <- .99
+cauda2 <- 1-conf2
+# qnorm-> pois N(0,1)
+quantil <-qnorm(conf2+cauda2/2)
+n <- sum(freq_are) # dimensão amostra
+# X barra na fórmula será o valor da tabela relativo à percentagem do "Yes"; e 1-X barra será o valor da tabela relativo à percentagem do "No"
+raiz <- as.numeric(sqrt(percent_are["Yes"]*(percent_are["No"])/n))
+erro2 <-quantil*raiz
+LB2 <-as.numeric(percent_are["Yes"])-erro2 
+UB2 <-as.numeric(percent_are["Yes"])+erro2
+cat("O erro será de",erro2,".")
+c(LB2,UB2)
+```
+
+O intervalo de confiança concreto será de ${]I_{0.99}[_{p}}^{*}\approx]`r round(LB2,3)`,`r round(UB2,3)`[$.
+
+### 2.7.)
+
+>  Interpretar o intervalo obtido
+
+Neste exercício , a interpretação que o intervalo de confiança resultado tem, é que, com $99%$ de confiança, as pessoas têm óculos de sol entre os $19.4%$ e os $28.1%$, aproximadamente.
+
+
+
+### FIM 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
